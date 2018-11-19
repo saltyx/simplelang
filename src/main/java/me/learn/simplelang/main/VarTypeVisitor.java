@@ -2,20 +2,21 @@ package me.learn.simplelang.main;
 
 import me.learn.simplelang.SimpleLangBaseVisitor;
 import me.learn.simplelang.SimpleLangParser;
+import me.learn.simplelang.main.data.Global;
 import me.learn.simplelang.main.data.MethodInfo;
 import me.learn.simplelang.main.data.Type;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.*;
 
+/**
+ * identify variable's type
+ */
 public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
 
     MethodInfo currentMethod = null;
     Map<String, Type> currentMethodParameters = new HashMap<>();
-
     List<MethodInfo> methodInfos = new LinkedList<>();
-
-    Map<String, Type> globalVarType = new HashMap<>();
 
     @Override
     public Type visitBlock(SimpleLangParser.BlockContext ctx) {
@@ -56,7 +57,7 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
         String var = ctx.VAR().getText();
         if (currentMethod == null) {
             // not in a method body
-            globalVarType.put(var, type);
+            Global.globalVarType.put(var, type);
         } else if (currentMethodParameters.get(var) == null) {
 
         }

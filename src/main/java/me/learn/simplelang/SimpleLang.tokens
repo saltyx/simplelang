@@ -20,10 +20,10 @@ SUB=19
 COMMENT=20
 LINE_COMMENT=21
 WS=22
-','=1
-'='=2
-'return'=3
-'('=4
+'='=1
+'return'=2
+'('=3
+','=4
 ')'=5
 'nil'=6
 'false'=7
