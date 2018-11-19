@@ -9,9 +9,9 @@ block
     ;
 
 stat
-    : VAR (',' VAR)* '=' expr (',' expr)*
-    | functionCall
-    | functionDef
+    : VAR '=' expr # assign
+    | functionCall # functioncall
+    | functionDef # functiondef
     ;
 
 returnStat
@@ -24,14 +24,20 @@ functionCall
 
 expr
     : 'nil' | 'false' | 'true'
-    | number
     | string
     | var
-    | opUnary expr
-    | '(' expr ')'
     | functionCall
-    | expr opMudAndDiv expr
-    | expr opAddAndSub expr
+    | calExpr
+    ;
+
+calExpr
+    : number
+    | var
+    | opUnary calExpr
+    | '(' calExpr ')'
+    | functionCall
+    | calExpr opAddAndSub calExpr
+    | calExpr opMudAndDiv calExpr
     ;
 
 functionDef

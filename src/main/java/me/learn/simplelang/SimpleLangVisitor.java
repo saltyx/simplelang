@@ -23,11 +23,26 @@ public interface SimpleLangVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBlock(SimpleLangParser.BlockContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SimpleLangParser#stat}.
+	 * Visit a parse tree produced by the {@code assign}
+	 * labeled alternative in {@link SimpleLangParser#stat}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitStat(SimpleLangParser.StatContext ctx);
+	T visitAssign(SimpleLangParser.AssignContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code functioncall}
+	 * labeled alternative in {@link SimpleLangParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunctioncall(SimpleLangParser.FunctioncallContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code functiondef}
+	 * labeled alternative in {@link SimpleLangParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunctiondef(SimpleLangParser.FunctiondefContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SimpleLangParser#returnStat}.
 	 * @param ctx the parse tree
@@ -46,6 +61,12 @@ public interface SimpleLangVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitExpr(SimpleLangParser.ExprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SimpleLangParser#calExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCalExpr(SimpleLangParser.CalExprContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SimpleLangParser#functionDef}.
 	 * @param ctx the parse tree

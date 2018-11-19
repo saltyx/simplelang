@@ -53,7 +53,6 @@ public class Visitor extends SimpleLangBaseVisitor<Object> implements Opcodes {
 
     @Override
     public Object visitFunctionDef(SimpleLangParser.FunctionDefContext ctx) {
-
         return super.visitFunctionDef(ctx);
     }
 
@@ -84,6 +83,9 @@ public class Visitor extends SimpleLangBaseVisitor<Object> implements Opcodes {
 
     @Override
     public Object visitNumber(SimpleLangParser.NumberContext ctx) {
+        if ( ctx.INT() != null ) {
+
+        }
         return super.visitNumber(ctx);
     }
 
