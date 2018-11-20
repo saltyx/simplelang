@@ -22,7 +22,9 @@ public class GlobalVarVisitor extends SimpleLangBaseVisitor {
 
     @Override
     public Object visitAssign(SimpleLangParser.AssignContext ctx) {
-        Global.globalVarType.put(ctx.VAR().getText(), Type.ANYTHING);
+        if (!isInMethod) {
+            Global.globalVarType.put(ctx.VAR().getText(), Type.ANYTHING);
+        }
         return visit(ctx.expr());
     }
 }

@@ -38,14 +38,14 @@ public class SimpleLangBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitFunctioncall(SimpleLangParser.FunctioncallContext ctx) { return visitChildren(ctx); }
+	@Override public T visitCallFunction(SimpleLangParser.CallFunctionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitFunctiondef(SimpleLangParser.FunctiondefContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDefFunction(SimpleLangParser.DefFunctionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -83,7 +83,6 @@ public class SimpleLangBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	@Override public T visitFunctionDef(SimpleLangParser.FunctionDefContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
-	 *
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>

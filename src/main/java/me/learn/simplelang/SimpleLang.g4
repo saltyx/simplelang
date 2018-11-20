@@ -10,8 +10,8 @@ block
 
 stat
     : VAR '=' expr # assign
-    | functionCall # functioncall
-    | functionDef # functiondef
+    | functionCall # callFunction
+    | functionDef # defFunction
     ;
 
 returnStat
@@ -23,7 +23,7 @@ functionCall
     ;
 
 expr
-    : 'nil' | 'false' | 'true'
+    : 'false' | 'true'
     | string
     | var
     | functionCall

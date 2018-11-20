@@ -58,15 +58,21 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
         if (currentMethod == null) {
             // not in a method body
             Global.globalVarType.put(var, type);
-        } else if (currentMethodParameters.get(var) == null) {
-
+        } else {
+            currentMethodParameters.put(var, type);
         }
-
         return null;
     }
 
     @Override
     public Type visitCalExpr(SimpleLangParser.CalExprContext ctx) {
+        if (ctx.number() != null) {
+            return ctx.number().INT() != null ? Type.INT : Type.FLOAT;
+        }
+        if (ctx.var() != null) {
+            return visit(ctx.var());
+        }
+        // TODO
         return null;
     }
 
@@ -109,8 +115,16 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
     }
 
     @Override
-    public Type visitVar(SimpleLangParser.VarContext ctx) {
-        return super.visitVar(ctx);
+    public Type visitVar(SimpleLangParser.VarContext ctx)  {
+        if (currentMethod == null) {
+            // not in a method
+            return Global.globalVarType.get(ctx.VAR().getText());
+        } else if (currentMethodParameters.get(ctx.VAR().getText()) == null) {
+            // in a method
+            return Global.globalVarType.get(ctx.VAR().getText());
+        } else {
+            return currentMethodParameters.get(ctx.VAR().getText());
+        }
     }
 
     @Override

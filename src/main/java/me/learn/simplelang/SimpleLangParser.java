@@ -205,25 +205,25 @@ public class SimpleLangParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
-	public static class FunctioncallContext extends StatContext {
-		public FunctionCallContext functionCall() {
-			return getRuleContext(FunctionCallContext.class,0);
-		}
-		public FunctioncallContext(StatContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SimpleLangVisitor ) return ((SimpleLangVisitor<? extends T>)visitor).visitFunctioncall(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	public static class FunctiondefContext extends StatContext {
+	public static class DefFunctionContext extends StatContext {
 		public FunctionDefContext functionDef() {
 			return getRuleContext(FunctionDefContext.class,0);
 		}
-		public FunctiondefContext(StatContext ctx) { copyFrom(ctx); }
+		public DefFunctionContext(StatContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SimpleLangVisitor ) return ((SimpleLangVisitor<? extends T>)visitor).visitFunctiondef(this);
+			if ( visitor instanceof SimpleLangVisitor ) return ((SimpleLangVisitor<? extends T>)visitor).visitDefFunction(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class CallFunctionContext extends StatContext {
+		public FunctionCallContext functionCall() {
+			return getRuleContext(FunctionCallContext.class,0);
+		}
+		public CallFunctionContext(StatContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SimpleLangVisitor ) return ((SimpleLangVisitor<? extends T>)visitor).visitCallFunction(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -260,7 +260,7 @@ public class SimpleLangParser extends Parser {
 				}
 				break;
 			case 2:
-				_localctx = new FunctioncallContext(_localctx);
+				_localctx = new CallFunctionContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(43);
@@ -268,7 +268,7 @@ public class SimpleLangParser extends Parser {
 				}
 				break;
 			case 3:
-				_localctx = new FunctiondefContext(_localctx);
+				_localctx = new DefFunctionContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(44);
