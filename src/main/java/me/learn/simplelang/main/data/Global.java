@@ -8,4 +8,5 @@ import java.util.Map;
  */
 public final class Global {
     public static Map<String, Type> globalVarType = new HashMap<>();
+    public static Map<String, Object> globalValue = new HashMap<>();
 }

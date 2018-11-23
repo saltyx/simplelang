@@ -73,7 +73,49 @@ public class SimpleLangBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitCalExpr(SimpleLangParser.CalExprContext ctx) { return visitChildren(ctx); }
+	@Override public T visitNumberCalExpr(SimpleLangParser.NumberCalExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitVarCalExpr(SimpleLangParser.VarCalExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitAddOrSubCalExpr(SimpleLangParser.AddOrSubCalExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitBracketsCalExpr(SimpleLangParser.BracketsCalExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitFunctionCalExpr(SimpleLangParser.FunctionCalExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitMudOrDivCalExpr(SimpleLangParser.MudOrDivCalExprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitUnaryCalExpr(SimpleLangParser.UnaryCalExprContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

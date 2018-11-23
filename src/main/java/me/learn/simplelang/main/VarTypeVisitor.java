@@ -7,16 +7,18 @@ import me.learn.simplelang.main.data.MethodInfo;
 import me.learn.simplelang.main.data.Type;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import javax.swing.text.html.Option;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * identify variable's type
  */
 public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
 
-    MethodInfo currentMethod = null;
-    Map<String, Type> currentMethodParameters = new HashMap<>();
-    List<MethodInfo> methodInfos = new LinkedList<>();
+    public MethodInfo currentMethod = null;
+    public Map<String, Type> currentMethodParameters = new HashMap<>();
+    public List<MethodInfo> methodInfos = new LinkedList<>();
 
     @Override
     public Type visitBlock(SimpleLangParser.BlockContext ctx) {
@@ -39,10 +41,9 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
 
     @Override
     public Type visitFunctionCall(SimpleLangParser.FunctionCallContext ctx) {
-        MethodInfo methodInfo = getMethodByMethodNameAndParamterNumber(
+        MethodInfo methodInfo = getMethodByMethodNameAndParameterNumber(
                 ctx.VAR().getText(), ctx.expr().size());
-        if (methodInfo == null)
-            throw new RuntimeException("can not find method " + ctx.VAR().getText());
+
         return methodInfo.returnType;
     }
 
@@ -65,23 +66,59 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
     }
 
     @Override
-    public Type visitCalExpr(SimpleLangParser.CalExprContext ctx) {
-        if (ctx.number() != null) {
-            return ctx.number().INT() != null ? Type.INT : Type.FLOAT;
+    public Type visitNumberCalExpr(SimpleLangParser.NumberCalExprContext ctx) {
+        return ctx.number().INT() == null ? Type.INT : Type.FLOAT ;
+    }
+
+    @Override
+    public Type visitAddOrSubCalExpr(SimpleLangParser.AddOrSubCalExprContext ctx) {
+        // if one var is float then use float
+        if (visit(ctx.calExpr(0)) == Type.FLOAT
+                || visit(ctx.calExpr(1)) == Type.FLOAT) {
+            return Type.FLOAT;
         }
-        if (ctx.var() != null) {
-            return visit(ctx.var());
+
+        return Type.INT;
+    }
+
+    @Override
+    public Type visitBracketsCalExpr(SimpleLangParser.BracketsCalExprContext ctx) {
+        return visit(ctx.calExpr());
+    }
+
+    @Override
+    public Type visitFunctionCalExpr(SimpleLangParser.FunctionCalExprContext ctx) {
+        // determine the parameters type and return method's return type
+        String functionName = ctx.functionCall().VAR().getText();
+        int parametersNum = ctx.functionCall().expr().size();
+        MethodInfo info = getMethodByMethodNameAndParameterNumber(functionName,
+                parametersNum);
+
+        info.parametersType = ctx.functionCall().expr().stream()
+                .map(this::visit).collect(Collectors.toList());
+
+        return info.returnType;
+    }
+
+    @Override
+    public Type visitMudOrDivCalExpr(SimpleLangParser.MudOrDivCalExprContext ctx) {
+        if (visit(ctx.calExpr(0)) == Type.FLOAT
+                || visit(ctx.calExpr(1)) == Type.FLOAT) {
+            return Type.FLOAT;
         }
-        // TODO
-        return null;
+
+        return Type.INT;
+    }
+
+    @Override
+    public Type visitUnaryCalExpr(SimpleLangParser.UnaryCalExprContext ctx) {
+        return visit(ctx.calExpr());
     }
 
     @Override
     public Type visitFunctionDef(SimpleLangParser.FunctionDefContext ctx) {
         currentMethod = new MethodInfo();
-
-        String functionName = ctx.VAR(0).getText();
-        currentMethod.methodName = functionName;
+        currentMethod.methodName = ctx.VAR(0).getText();
 
         ctx.VAR().stream().map(ParseTree::getText)
                 .forEach(item ->
@@ -93,25 +130,12 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
 
         methodInfos.add(currentMethod.clone());
 
+        Type returnType = currentMethod.returnType;
+
         currentMethod = null;
         currentMethodParameters.clear();
 
-        return currentMethod.returnType;
-    }
-
-    @Override
-    public Type visitOpMudAndDiv(SimpleLangParser.OpMudAndDivContext ctx) {
-        return super.visitOpMudAndDiv(ctx);
-    }
-
-    @Override
-    public Type visitOpAddAndSub(SimpleLangParser.OpAddAndSubContext ctx) {
-        return super.visitOpAddAndSub(ctx);
-    }
-
-    @Override
-    public Type visitOpUnary(SimpleLangParser.OpUnaryContext ctx) {
-        return super.visitOpUnary(ctx);
+        return returnType;
     }
 
     @Override
@@ -137,11 +161,12 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
         return ctx.INT() == null ? Type.INT : Type.FLOAT;
     }
 
-    private MethodInfo getMethodByMethodNameAndParamterNumber(String methodName,
-                                                              int paramtersNum) {
+    private MethodInfo getMethodByMethodNameAndParameterNumber(String methodName, int parametersNum) {
         return methodInfos.stream().filter(item ->
             item.methodName.equals(methodName) &&
-                    item.parametersType.size() == paramtersNum
-        ).findFirst().get();
+                    item.parametersType.size() == parametersNum
+        ).findFirst()
+        .orElseThrow(() ->
+            new RuntimeException("can not find method" + methodName));
     }
 }

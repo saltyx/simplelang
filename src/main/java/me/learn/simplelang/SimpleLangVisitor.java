@@ -62,11 +62,54 @@ public interface SimpleLangVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpr(SimpleLangParser.ExprContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SimpleLangParser#calExpr}.
+	 * Visit a parse tree produced by the {@code numberCalExpr}
+	 * labeled alternative in {@link SimpleLangParser#calExpr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitCalExpr(SimpleLangParser.CalExprContext ctx);
+	T visitNumberCalExpr(SimpleLangParser.NumberCalExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code varCalExpr}
+	 * labeled alternative in {@link SimpleLangParser#calExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVarCalExpr(SimpleLangParser.VarCalExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code addOrSubCalExpr}
+	 * labeled alternative in {@link SimpleLangParser#calExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAddOrSubCalExpr(SimpleLangParser.AddOrSubCalExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code bracketsCalExpr}
+	 * labeled alternative in {@link SimpleLangParser#calExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBracketsCalExpr(SimpleLangParser.BracketsCalExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code functionCalExpr}
+	 * labeled alternative in {@link SimpleLangParser#calExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunctionCalExpr(SimpleLangParser.FunctionCalExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code mudOrDivCalExpr}
+	 * labeled alternative in {@link SimpleLangParser#calExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMudOrDivCalExpr(SimpleLangParser.MudOrDivCalExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code unaryCalExpr}
+	 * labeled alternative in {@link SimpleLangParser#calExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnaryCalExpr(SimpleLangParser.UnaryCalExprContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SimpleLangParser#functionDef}.
 	 * @param ctx the parse tree

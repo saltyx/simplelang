@@ -23,21 +23,20 @@ functionCall
     ;
 
 expr
-    : 'false' | 'true'
-    | string
+    : string
     | var
     | functionCall
     | calExpr
     ;
 
 calExpr
-    : number
-    | var
-    | opUnary calExpr
-    | '(' calExpr ')'
-    | functionCall
-    | calExpr opAddAndSub calExpr
-    | calExpr opMudAndDiv calExpr
+    : number                        # numberCalExpr
+    | var                           # varCalExpr
+    | opUnary calExpr               # unaryCalExpr
+    | '(' calExpr ')'               # bracketsCalExpr
+    | functionCall                  # functionCalExpr
+    | calExpr opAddAndSub calExpr   # addOrSubCalExpr
+    | calExpr opMudAndDiv calExpr   # mudOrDivCalExpr
     ;
 
 functionDef

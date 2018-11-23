@@ -27,4 +27,6 @@ public class GlobalVarVisitor extends SimpleLangBaseVisitor {
         }
         return visit(ctx.expr());
     }
+
+    //TODO 检查全局变量值，如果可以确定值，记录下来，供判断变量类型参考
 }
