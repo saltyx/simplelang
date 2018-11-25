@@ -1,6 +1,8 @@
 package me.learn.simplelang.main.data;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -8,5 +10,5 @@ import java.util.Map;
  */
 public final class Global {
     public static Map<String, Type> globalVarType = new HashMap<>();
-    public static Map<String, Object> globalValue = new HashMap<>();
+    public static List<MethodInfo> methodInfos = new LinkedList<>();
 }

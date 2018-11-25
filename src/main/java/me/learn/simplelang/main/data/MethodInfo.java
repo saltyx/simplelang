@@ -31,4 +31,13 @@ public class MethodInfo implements Cloneable {
 
         return Objects.hash(methodName, parametersType, returnType);
     }
+
+    @Override
+    public String toString() {
+        return "MethodInfo{" +
+                "methodName='" + methodName + '\'' +
+                ", parametersType=" + parametersType +
+                ", returnType=" + returnType +
+                '}';
+    }
 }

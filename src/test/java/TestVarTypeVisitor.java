@@ -35,7 +35,7 @@ public class TestVarTypeVisitor {
         typeVisitor.visit(parser.simpleLang());
 
         log.info("{}", Global.globalVarType);
-        log.info("{}", typeVisitor.methodInfos);
+        log.info("{}", Global.methodInfos);
     }
 
 }

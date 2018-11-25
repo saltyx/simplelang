@@ -5,8 +5,8 @@ function aa(a, b)
 end
 
 function aaa(a)
-    d=12.11
-    a=aa(a)
+    d=12
+    a=aa(a, d)
     return a
 end
 

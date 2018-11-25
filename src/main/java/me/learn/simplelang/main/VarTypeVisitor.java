@@ -6,6 +6,8 @@ import me.learn.simplelang.main.data.Global;
 import me.learn.simplelang.main.data.MethodInfo;
 import me.learn.simplelang.main.data.Type;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.text.html.Option;
 import java.util.*;
@@ -16,9 +18,10 @@ import java.util.stream.Collectors;
  */
 public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
 
+    private final static Logger log = LoggerFactory.getLogger(VarTypeVisitor.class);
+
     public MethodInfo currentMethod = null;
     public Map<String, Type> currentMethodParameters = new HashMap<>();
-    public List<MethodInfo> methodInfos = new LinkedList<>();
 
     @Override
     public Type visitBlock(SimpleLangParser.BlockContext ctx) {
@@ -43,7 +46,7 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
     public Type visitFunctionCall(SimpleLangParser.FunctionCallContext ctx) {
         MethodInfo methodInfo = getMethodByMethodNameAndParameterNumber(
                 ctx.VAR().getText(), ctx.expr().size());
-
+        // TODO determine the function parameter type
         return methodInfo.returnType;
     }
 
@@ -119,16 +122,19 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
     public Type visitFunctionDef(SimpleLangParser.FunctionDefContext ctx) {
         currentMethod = new MethodInfo();
         currentMethod.methodName = ctx.VAR(0).getText();
-
-        ctx.VAR().stream().map(ParseTree::getText)
-                .forEach(item ->
-                    currentMethodParameters.put(item, Type.ANYTHING)
-                );
+        for (int i = 1; i < ctx.VAR().size(); i++) {
+            currentMethodParameters.put(ctx.VAR().get(i).getText(),
+                    Type.ANYTHING);
+        }
         currentMethod.returnType = Type.VOID;
+        currentMethod.parametersType =
+                new LinkedList<>(currentMethodParameters.values());
+
+        log.debug("{}", currentMethodParameters);
 
         visit(ctx.block());
 
-        methodInfos.add(currentMethod.clone());
+        Global.methodInfos.add(currentMethod.clone());
 
         Type returnType = currentMethod.returnType;
 
@@ -162,11 +168,12 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Type> {
     }
 
     private MethodInfo getMethodByMethodNameAndParameterNumber(String methodName, int parametersNum) {
-        return methodInfos.stream().filter(item ->
-            item.methodName.equals(methodName) &&
-                    item.parametersType.size() == parametersNum
-        ).findFirst()
+        return Global.methodInfos.stream().filter(item ->
+            item.methodName.equals(methodName)
+                    && item.parametersType != null
+                    && item.parametersType.size() == parametersNum
+        ).findAny()
         .orElseThrow(() ->
-            new RuntimeException("can not find method" + methodName));
+            new RuntimeException("can not find method <" + methodName + ">"));
     }
 }
