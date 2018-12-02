@@ -1,21 +1,31 @@
 package me.learn.simplelang.main.data;
 
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class MethodInfo implements Cloneable {
     public String methodName;
-    public List<Type> parametersType;
-    public Type returnType;
+    public Set<String> parameters;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MethodInfo that = (MethodInfo) o;
-        return Objects.equals(methodName, that.methodName) &&
-                Objects.equals(parametersType, that.parametersType) &&
-                Objects.equals(returnType, that.returnType);
+        MethodInfo info = (MethodInfo) o;
+
+        if (parameters == null && info.parameters != null)
+            return false;
+        if (parameters != null && info.parameters == null)
+            return false;
+        if (parameters != null &&
+                parameters.size() != info.parameters.size())
+            return false;
+        return Objects.equals(methodName, info.methodName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(methodName, parameters);
     }
 
     public MethodInfo clone() {
@@ -27,17 +37,10 @@ public class MethodInfo implements Cloneable {
     }
 
     @Override
-    public int hashCode() {
-
-        return Objects.hash(methodName, parametersType, returnType);
-    }
-
-    @Override
     public String toString() {
         return "MethodInfo{" +
                 "methodName='" + methodName + '\'' +
-                ", parametersType=" + parametersType +
-                ", returnType=" + returnType +
+                ", parameters=" + parameters +
                 '}';
     }
 }

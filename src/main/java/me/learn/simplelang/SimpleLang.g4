@@ -9,7 +9,7 @@ block
     ;
 
 stat
-    : VAR '=' expr # assign
+    : var '=' expr # assign
     | functionCall # callFunction
     | functionDef # defFunction
     ;

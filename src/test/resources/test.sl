@@ -1,14 +1,14 @@
-function aa(a, b)
-    c=1+a
-    a=a+1*b
-    return a
+function f1(arg1, arg2)
+    arg1 = 1.2+arg1
+    arg3 = arg1+a
+    return arg1+arg2
 end
 
-function aaa(a)
-    d=12
-    a=aa(a, d)
-    return a
+function f2(arg1)
+    arg1=f1(arg1, 10)
+    return arg1
 end
 
 a=1
-b=aaa(a)
+b=f2(a)
+c=f2(1.2)
