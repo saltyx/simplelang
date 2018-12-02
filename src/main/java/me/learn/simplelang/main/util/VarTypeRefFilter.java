@@ -58,10 +58,14 @@ public final class VarTypeRefFilter {
                 if (equalVarItem(item, dependency)) {
                     item.type = dependency.type;
                     item.isTerminal = true;
-                    // TODO process 如同filter 函数做法
-                    process(ref.varTypeRef, item);
                 }
             });
+            // TODO process 如同filter 函数做法
+            ref.varTypeRef.removeAll(process(ref.varTypeRef, ref));
+            if (ref.varTypeRef.isEmpty()) {
+                ref.isTerminal = true;
+                result.add(ref);
+            }
         });
 
         return result;
