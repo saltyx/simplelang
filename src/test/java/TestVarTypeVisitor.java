@@ -44,9 +44,16 @@ public class TestVarTypeVisitor {
         log.debug("============================================");
         // 通过
         Queue<VarItem> queue = VarTypeRefFilter.filter(Global.typeRef);
+        log.debug("{}", queue);
         log.debug("============================================");
+        VarTypeRefFilter.identifyVarType(Global.typeRef);
+
+        if (Global.typeRef.stream().anyMatch(item -> item.isTerminal == null))
+            throw new RuntimeException("can not identify all var's type [check your code for annulus dependency]");
 
         log.debug("{}", queue);
+        log.debug("{}", Global.typeRef);
+
     }
 
 }

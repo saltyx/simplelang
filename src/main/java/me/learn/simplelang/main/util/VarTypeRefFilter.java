@@ -1,6 +1,7 @@
 package me.learn.simplelang.main.util;
 
 import com.sun.istack.internal.NotNull;
+import me.learn.simplelang.main.data.MethodInfo;
 import me.learn.simplelang.main.data.Type;
 import me.learn.simplelang.main.data.VarItem;
 import org.slf4j.Logger;
@@ -19,13 +20,10 @@ public final class VarTypeRefFilter {
         for (VarItem item : varRefs) {
             if (item.isTerminal != null && item.isTerminal)
                 continue;
-            HashSet<VarItem> refs = item.varTypeRef;
-            refs.remove(item);
-            log.debug("{} => {}", item, refs);
-
-            refs.removeAll(process(refs, item));
-
-            if (refs.isEmpty()) {
+            item.varTypeRef.remove(item);
+            log.debug("{} => {}", item, item.varTypeRef);
+            item.varTypeRef.removeAll(process(item));
+            if (item.varTypeRef.isEmpty()) {
                 item.isTerminal = true;
                 determinedVarQueue.offer(item);
             }
@@ -34,13 +32,10 @@ public final class VarTypeRefFilter {
         return determinedVarQueue;
     }
 
-    /**
-     *
-     * @param queue
-     */
-    public static void identifyVarType(Queue<VarItem> queue, List<VarItem> varRefs) {
-        while (!queue.isEmpty()) {
-
+    public static void identifyVarType(List<VarItem> varRefs) {
+        while (!determinedVarQueue.isEmpty()) {
+            VarItem dependency = determinedVarQueue.poll();
+            findVarItemByDependency(dependency, varRefs);
         }
     }
 
@@ -50,35 +45,34 @@ public final class VarTypeRefFilter {
      * @param varRefs
      * @return
      */
-    private static List<VarItem> findVarItemByDependency(VarItem dependency,
-                                                         List<VarItem> varRefs) {
-        List<VarItem> result = new LinkedList<>();
-        varRefs.forEach(ref -> {
-            ref.varTypeRef.forEach(item -> {
-                if (equalVarItem(item, dependency)) {
-                    item.type = dependency.type;
-                    item.isTerminal = true;
-                }
-            });
-            // TODO process 如同filter 函数做法
-            ref.varTypeRef.removeAll(process(ref.varTypeRef, ref));
-            if (ref.varTypeRef.isEmpty()) {
-                ref.isTerminal = true;
-                result.add(ref);
-            }
-        });
+    private static void findVarItemByDependency(VarItem dependency,
+                                                List<VarItem> varRefs) {
 
-        return result;
+        varRefs.stream().filter(tmp -> tmp.varTypeRef != null &&
+                (tmp.isTerminal == null || !tmp.isTerminal)).forEach(ref -> {
+                    ref.varTypeRef.forEach(item -> {
+                        if (equalVarItem(item, dependency)) {
+                            ref.type = dependency.type;
+                            ref.varTypeRef.remove(item);
+                        }
+                    });
+                    // process 如同filter 函数做法
+                    Set<VarItem> items = process(ref);
+                    ref.varTypeRef.removeAll(items);
+                    if (ref.varTypeRef.isEmpty()) {
+                        ref.isTerminal = true;
+                        determinedVarQueue.offer(ref);
+                    }
+                });
     }
 
     /**
      * 遍历set 确定能够发现的类型，返回确定的类型
-     * @param refs
      * @param varItem
      * @return
      */
-    private static Set<VarItem> process(Set<VarItem> refs, VarItem varItem) {
-        Set<VarItem> terminalRefs = refs.stream()
+    private static Set<VarItem> process(VarItem varItem) {
+        Set<VarItem> terminalRefs = varItem.varTypeRef.stream()
                 .filter(ref -> ref.isTerminal != null &&
                         ref.isTerminal)
                 .collect(Collectors.toSet());
@@ -99,11 +93,21 @@ public final class VarTypeRefFilter {
      * @return
      */
     private static boolean equalVarItem(VarItem item1, VarItem item2) {
-        return item1.var.equals(item2.var) &&
-               ( (item1.belongedMethod == null && item2.belongedMethod == null) ||
-                       (item1.belongedMethod != null && item2.belongedMethod != null &&
-                        item1.belongedMethod.equals(item2.belongedMethod) ) ) &&
-               item1.scope == item2.scope &&
-               item1.methodArgIndex.equals(item2.methodArgIndex);
+        return stringEquals(item1.var, item2.var) &&
+               methodInfoEquals(item1.belongedMethod, item2.belongedMethod) &&
+               objectEquals(item1.scope, item2.scope) &&
+               objectEquals(item1.methodArgIndex, item2.methodArgIndex);
+    }
+
+    private static boolean stringEquals(String str1, String str2) {
+        return str1 == null ? str2 == null : str1.equals(str2);
+    }
+
+    private static boolean methodInfoEquals(MethodInfo methodInfo1, MethodInfo methodInfo2) {
+        return methodInfo1 == null ? methodInfo2 == null : methodInfo1.equals(methodInfo2);
+    }
+
+    private static boolean objectEquals(Object obj1, Object obj2) {
+        return obj1 == null ? obj2 == null : obj1.equals(obj2);
     }
 }

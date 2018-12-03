@@ -1,9 +1,15 @@
 
 import me.learn.simplelang.main.data.VarItem;
+import me.learn.simplelang.main.util.VarTypeRefFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class TestEquals {
+
+    private final static Logger log = LoggerFactory.getLogger(TestEquals.class);
+
 
     public static void main(String[] args) {
 
@@ -40,14 +46,20 @@ public class TestEquals {
 //        System.out.println(map.get(info));
 //        System.out.println(map.get(info1));
 
-        HashSet<String> h = new HashSet<>();
-        h.add("arg3");
-        h.add("arg1");
-        h.add("arg2");
+//        HashSet<String> h = new HashSet<>();
+//        h.add("arg3");
+//        h.add("arg1");
+//        h.add("arg2");
+//
+//        for (String str: h) {
+//            System.out.println(str);
+//        }
 
-        for (String str: h) {
-            System.out.println(str);
-        }
+        Queue<Integer> queue = new LinkedList<>();
+        queue.offer(1);
+        queue.offer(2);
+        queue.poll();
+        log.info("{}", queue);
     }
 
 }

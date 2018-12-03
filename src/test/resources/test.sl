@@ -5,7 +5,7 @@ function f1(arg1, arg2)
 end
 
 function f2(arg1)
-    arg1=f1(arg1, 10)
+    arg1=f1(a, 10)
     return arg1
 end
 
