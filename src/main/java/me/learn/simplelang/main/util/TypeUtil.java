@@ -1,10 +1,12 @@
 package me.learn.simplelang.main.util;
 
+import me.learn.simplelang.main.data.Global;
+import me.learn.simplelang.main.data.MethodInfo;
 import me.learn.simplelang.main.data.Type;
+import me.learn.simplelang.main.data.VarItem;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public final class TypeUtil {
 
@@ -23,6 +25,49 @@ public final class TypeUtil {
         types.add(a);
         types.add(b);
         return max(types);
+    }
+
+    public static List<VarItem> findVarItem(VarItem param) {
+        return Global.typeRef.stream().filter(item -> {
+            boolean result = true;
+            if (param.belongedMethod != null) {
+                result = param.belongedMethod.equals(item.belongedMethod);
+            }
+
+            if (param.var != null) {
+                result = result &&
+                        param.var.equals(item.var);
+            }
+
+            if (param.scope != null) {
+                result = result &&
+                        param.scope == item.scope;
+            }
+
+            if (param.methodArgIndex != null) {
+                result = result &&
+                        param.methodArgIndex.equals(item.methodArgIndex);
+            }
+
+            if (param.isTerminal != null) {
+                result = result &&
+                        param.isTerminal.equals(item.isTerminal);
+            }
+
+            if (param.type != null) {
+                result = result &&
+                        param.type == item.type;
+            }
+
+            return result;
+        }).collect(Collectors.toList());
+    }
+
+    public static Optional<MethodInfo> findMethodInfoByNameAndParams(String name,
+                                                               int params) {
+        return Global.methodInfos.stream().filter(item ->
+                name.equals(item.methodName) && params == item.parameters.size())
+                .findAny();
     }
 
     private static int getCmpValue(Type a) {

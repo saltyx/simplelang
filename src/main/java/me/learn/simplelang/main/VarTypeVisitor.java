@@ -6,6 +6,7 @@ import me.learn.simplelang.main.data.Global;
 import me.learn.simplelang.main.data.MethodInfo;
 import me.learn.simplelang.main.data.Type;
 import me.learn.simplelang.main.data.VarItem;
+import me.learn.simplelang.main.util.TypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+//import static me.learn.simplelang.main.util.TypeUtil.findVarItem;
 
 /**
  * 确认每个变量依赖
@@ -28,7 +30,7 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Set<VarItem>> {
     @Override
     public Set<VarItem> visitFunctionDef(SimpleLangParser.FunctionDefContext ctx) {
         String methodName = ctx.VAR(0).getText();
-        Optional<MethodInfo> existMethod = findMethodInfoByNameAndParams(
+        Optional<MethodInfo> existMethod = TypeUtil.findMethodInfoByNameAndParams(
                 methodName, ctx.VAR().size() - 1);
         if (existMethod.isPresent())
             throw new RuntimeException("method <" + methodName + "> already exists");
@@ -92,7 +94,7 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Set<VarItem>> {
     public Set<VarItem> visitFunctionCall(SimpleLangParser.FunctionCallContext ctx) {
         String methodName = ctx.VAR().getText();
         int params = ctx.expr().size();
-        Optional<MethodInfo> existMethod = findMethodInfoByNameAndParams(methodName,
+        Optional<MethodInfo> existMethod = TypeUtil.findMethodInfoByNameAndParams(methodName,
                 params);
         MethodInfo methodInfo = existMethod.orElseThrow(
                 () -> new RuntimeException("can not find method <" + methodName + ">"));
@@ -102,7 +104,7 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Set<VarItem>> {
         param.scope = VarItem.Scope.METHOD_ARG;
         param.belongedMethod = methodInfo;
 
-        List<VarItem> items = findVarItem(param);
+        List<VarItem> items = TypeUtil.findVarItem(param);
         for (int i = 0; i < items.size(); i++) {
             VarItem item = items.get(i);
 
@@ -113,7 +115,7 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Set<VarItem>> {
         }
 
         param.scope = VarItem.Scope.METHOD_RETURN;
-        return new LinkedHashSet<>(findVarItem(param));
+        return new LinkedHashSet<>(TypeUtil.findVarItem(param));
     }
 
     @Override
@@ -141,14 +143,14 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Set<VarItem>> {
                 param.scope = VarItem.Scope.METHOD_ARG;
                 param.belongedMethod = currentMethod;
 
-                result.add(findVarItem(param).get(0));
+                result.add(TypeUtil.findVarItem(param).get(0));
 
             } else if (isGlobalVar(var)) {
                 VarItem param = new VarItem();
                 param.var = var;
                 param.scope = VarItem.Scope.GLOBAL;
 
-                result.add(findVarItem(param).get(0));
+                result.add(TypeUtil.findVarItem(param).get(0));
             } else {
                 // 认为是局部变量
                 VarItem param = new VarItem();
@@ -156,7 +158,7 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Set<VarItem>> {
                 param.var = var;
                 param.belongedMethod = currentMethod;
 
-                VarItem tempVarItem = findVarItem(param).stream().findAny()
+                VarItem tempVarItem = TypeUtil.findVarItem(param).stream().findAny()
                         .orElseGet(() -> {
                             VarItem item = new VarItem();
                             item.scope = VarItem.Scope.METHOD_TEMP_VAR;
@@ -173,7 +175,7 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Set<VarItem>> {
                 param.var = var;
                 param.scope = VarItem.Scope.GLOBAL;
 
-                result.add(findVarItem(param).get(0));
+                result.add(TypeUtil.findVarItem(param).get(0));
             }
         }
         return result;
@@ -207,7 +209,7 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Set<VarItem>> {
         Set<VarItem> items = new LinkedHashSet<>();
         items.add(varItem);
 
-        if (findVarItem(varItem).isEmpty()) {
+        if (TypeUtil.findVarItem(varItem).isEmpty()) {
             Global.typeRef.add(varItem);
         }
         return items;
@@ -220,8 +222,9 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Set<VarItem>> {
             VarItem varItem = new VarItem();
             varItem.type = Type.INT;
             varItem.isTerminal = true;
+            varItem.var = ctx.INT().getText();
             items.add(varItem);
-            if (findVarItem(varItem).isEmpty()) {
+            if (TypeUtil.findVarItem(varItem).isEmpty()) {
                 Global.typeRef.add(varItem);
             }
         }
@@ -230,56 +233,14 @@ public class VarTypeVisitor extends SimpleLangBaseVisitor<Set<VarItem>> {
             VarItem varItem = new VarItem();
             varItem.type = Type.FLOAT;
             varItem.isTerminal = true;
+            varItem.var = ctx.FLOAT().getText();
             items.add(varItem);
-            if (findVarItem(varItem).isEmpty()) {
+            if (TypeUtil.findVarItem(varItem).isEmpty()) {
                 Global.typeRef.add(varItem);
             }
         }
 
         return items;
-    }
-
-    private Optional<MethodInfo> findMethodInfoByNameAndParams(String name,
-                                                               int params) {
-        return methods.stream().filter(item ->
-            name.equals(item.methodName) && params == item.parameters.size())
-                .findAny();
-    }
-
-    private List<VarItem> findVarItem(VarItem param) {
-        return Global.typeRef.stream().filter(item -> {
-            boolean result = true;
-            if (param.belongedMethod != null) {
-                result = param.belongedMethod.equals(item.belongedMethod);
-            }
-
-            if (param.var != null) {
-                result = result &&
-                        param.var.equals(item.var);
-            }
-
-            if (param.scope != null) {
-                result = result &&
-                        param.scope == item.scope;
-            }
-
-            if (param.methodArgIndex != null) {
-                result = result &&
-                        param.methodArgIndex.equals(item.methodArgIndex);
-            }
-
-            if (param.isTerminal != null) {
-                result = result &&
-                        param.isTerminal.equals(item.isTerminal);
-            }
-
-            if (param.type != null) {
-                result = result &&
-                        param.type == item.type;
-            }
-
-            return result;
-        }).collect(Collectors.toList());
     }
 
     private static boolean isInMethod() {

@@ -40,7 +40,10 @@ public class TestVarTypeVisitor {
         log.info("Global.globalVarType {}", Global.globalVarType);
         log.info("Global.methodInfos {}", Global.methodInfos);
         log.info("Global.typeRef {}", Global.typeRef);
-
+        log.debug("==================依赖==========================");
+        Global.typeRef.forEach(item -> {
+            log.info("{} =>", item, item.varTypeRef);
+        });
         log.debug("============================================");
         // 通过
         Queue<VarItem> queue = VarTypeRefFilter.filter(Global.typeRef);

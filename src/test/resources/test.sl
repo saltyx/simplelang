@@ -10,5 +10,5 @@ function f2(arg1)
 end
 
 a=1
-b=f2(a)
+f2(f1(a, 10))
 c=f2(1.2)

@@ -2,10 +2,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.*;
 
 public class TestASM extends ClassLoader implements Opcodes {
     public static void main(String[] args) throws Throwable {
@@ -16,7 +13,28 @@ public class TestASM extends ClassLoader implements Opcodes {
                 ACC_PUBLIC,
                 "TestASM", null, "java/lang/Object", new String[]{});
 
-        MethodVisitor mw = cw1.visitMethod(ACC_PUBLIC,
+        cw1.visitField(ACC_PUBLIC+ACC_STATIC, "aaaaa",
+                "I", null,
+                null).visitEnd();
+        MethodVisitor mw = cw1.visitMethod(ACC_PUBLIC+ACC_STATIC,
+                "<clinit>", "()V", null,
+                null);
+//        mw.visitLdcInsn(2F);
+        mw.visitIntInsn(BIPUSH, 128);
+//        mw.visitInsn(I2F);
+//        mw.visitInsn(ICONST_1);
+        mw.visitInsn(INEG);
+        mw.visitFieldInsn(PUTSTATIC, "TestASM",
+                "aaaaa", "I");
+//        mw.visitFieldInsn(GETSTATIC,
+//              "TestASM",
+//                "aaaaa", "I");
+        mw.visitInsn(RETURN);
+        mw.visitMaxs(0 ,0);
+        mw.visitEnd();
+
+
+        mw = cw1.visitMethod(ACC_PUBLIC,
                 "<init>", "()V", null,
                 null);
 
@@ -37,7 +55,8 @@ public class TestASM extends ClassLoader implements Opcodes {
                 "java/io/PrintStream",
                 "println",
                 "(Ljava/lang/String;)V", false);
-        mw1.visitFieldInsn(GETSTATIC, "java/lang/System",
+        mw1.visitFieldInsn(GETSTATIC,
+                "java/lang/System",
                 "out", "Ljava/io/PrintStream;");
         mw1.visitInsn(ICONST_0);
         mw1.visitInsn(ICONST_3);

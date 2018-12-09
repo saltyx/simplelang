@@ -12,5 +12,4 @@ public final class Global {
     public static Map<String, Type> globalVarType = new HashMap<>();
     public static List<MethodInfo> methodInfos = new LinkedList<>();
     public static List<VarItem> typeRef = new LinkedList<>();
-
 }
