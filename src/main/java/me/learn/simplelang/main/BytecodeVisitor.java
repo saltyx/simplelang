@@ -1,9 +1,7 @@
 package me.learn.simplelang.main;
 
-import com.sun.org.apache.bcel.internal.generic.ICONST;
 import me.learn.simplelang.SimpleLangBaseVisitor;
 import me.learn.simplelang.SimpleLangParser;
-import me.learn.simplelang.SimpleLangVisitor;
 import me.learn.simplelang.main.data.*;
 import me.learn.simplelang.main.util.TypeUtil;
 import org.objectweb.asm.ClassWriter;
@@ -88,7 +86,7 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
         currentMethod = TypeUtil.findMethodInfoByNameAndParams(ctx.VAR().get(0).getText(),
                 ctx.VAR().size()-1).get();
 
-        List<VarItem> methodBodyVars = TypeUtil.findVarItem(VarItemFactory.createBelondedMethodVarItem(currentMethod));
+        List<VarItem> methodBodyVars = TypeUtil.findVarItem(VarItemFactory.createBelongedMethodVarItem(currentMethod));
         Type retType = null;
 
         for (VarItem item : methodBodyVars) {
@@ -172,6 +170,10 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
 
     @Override
     public Type visitAssign(SimpleLangParser.AssignContext ctx) {
+        //TODO
+        String var = ctx.var().VAR().getText();
+        Type varType = visit(ctx.var());
+
         return super.visitAssign(ctx);
     }
 
@@ -179,14 +181,17 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
     public Type visitAddOrSubCalExpr(SimpleLangParser.AddOrSubCalExprContext ctx) {
         Type type1 = visit(ctx.calExpr(0));
         Type type2 = visit(ctx.calExpr(1));
-        //TODO
-        return super.visitAddOrSubCalExpr(ctx);
+        processOperationNumber(ctx.opAddAndSub().getText(), type1, type2);
+        return (type1 == Type.FLOAT || type2 == Type.FLOAT) ? Type.FLOAT : Type.INT ;
     }
 
     @Override
     public Type visitMudOrDivCalExpr(SimpleLangParser.MudOrDivCalExprContext ctx) {
-        //TODO
-        return super.visitMudOrDivCalExpr(ctx);
+        Type type1 = visit(ctx.calExpr(0));
+        Type type2 = visit(ctx.calExpr(1));
+        processOperationNumber(ctx.opMudAndDiv().getText(), type1, type2);
+
+        return (type1 == Type.FLOAT || type2 == Type.FLOAT) ? Type.FLOAT : Type.INT ;
     }
 
     @Override
@@ -288,8 +293,17 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
                     break;
             }
         } else {
-            // TODO main 方法区域
-
+            VarItem param = VarItemFactory.createGlobalVarItem(var);
+            VarItem globalVar = TypeUtil.findVarItem(param).get(0);
+            if (Global.globalVarType.get(var) == null) {
+                classWriter.visitField(ACC_PUBLIC + ACC_STATIC,
+                        var, CallMethodParamFactory.getTypeString(globalVar.type), null, null).visitEnd();
+                Global.globalVarType.put(var, globalVar.type);
+            } else {
+                // TODO 有可能生成不必要的变量
+                mainMethodVisitor.visitFieldInsn(GETSTATIC,
+                        CLASS_NAME, var, CallMethodParamFactory.getTypeString(globalVar.type));
+            }
         }
         return super.visitVar(ctx);
     }
@@ -322,4 +336,33 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
         }
     }
 
+    private static void processOperationNumber(String oper, Type type1, Type type2) {
+        if (type1 == Type.INT && type2 == Type.INT) {
+            getMethodVisitor().visitInsn(getNumberOperationInstruction(
+                    oper, Type.INT));
+        } else if (type1 == Type.FLOAT && type2 == Type.INT) {
+            getMethodVisitor().visitInsn(I2F);
+            getMethodVisitor().visitInsn(getNumberOperationInstruction(
+                    oper, Type.FLOAT));
+        } else if (type1 == Type.FLOAT && type2 == Type.FLOAT) {
+            getMethodVisitor().visitInsn(getNumberOperationInstruction(
+                    oper, Type.FLOAT));
+        } else {
+            throw new RuntimeException("operation[int operation float] is not supported;");
+        }
+    }
+
+    private static Integer getNumberOperationInstruction(String oper, Type type) {
+        switch (oper) {
+            case "+":
+                return type == Type.INT ? IADD : FADD;
+            case "-":
+                return type == Type.INT ? ISUB : FSUB;
+            case "*":
+                return type ==Type.INT ? IMUL : FMUL;
+            case "/":
+                return type == Type.INT ? IDIV : FDIV;
+        }
+        throw new RuntimeException(oper + " is not supported for int");
+    }
 }

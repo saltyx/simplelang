@@ -23,9 +23,16 @@ public class VarItemFactory {
         return item;
     }
 
-    public static VarItem createBelondedMethodVarItem(MethodInfo belongedMethod) {
+    public static VarItem createBelongedMethodVarItem(MethodInfo belongedMethod) {
         VarItem item = new VarItem();
         item.belongedMethod = belongedMethod;
+        return item;
+    }
+
+    public static VarItem createGlobalVarItem(String var) {
+        VarItem item = new VarItem();
+        item.var = var;
+        item.scope = VarItem.Scope.GLOBAL;
         return item;
     }
 }
