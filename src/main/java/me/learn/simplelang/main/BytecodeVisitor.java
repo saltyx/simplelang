@@ -170,11 +170,20 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
 
     @Override
     public Type visitAssign(SimpleLangParser.AssignContext ctx) {
-        //TODO
         String var = ctx.var().VAR().getText();
         Type varType = visit(ctx.var());
+        visit(ctx.expr());
 
-        return super.visitAssign(ctx);
+        VarItem param = VarItemFactory.createVarVarItem(var, varType, currentMethod);
+        VarItem varItem = TypeUtil.findVarItem(param).get(0);
+        if (varItem.scope == VarItem.Scope.GLOBAL) {
+            getMethodVisitor().visitFieldInsn(PUTSTATIC, CLASS_NAME,
+                    var, CallMethodParamFactory.getTypeString(varType));
+        } else {
+            int index = localVarIndex.get(var);
+            getMethodVisitor().visitVarInsn(getStoreOperationInstruction(varType), index);
+        }
+        return null;
     }
 
     @Override
@@ -346,7 +355,8 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
                     oper, Type.FLOAT));
         } else if (type1 == Type.FLOAT && type2 == Type.FLOAT) {
             getMethodVisitor().visitInsn(getNumberOperationInstruction(
-                    oper, Type.FLOAT));
+                    oper
+                    , Type.FLOAT));
         } else {
             throw new RuntimeException("operation[int operation float] is not supported;");
         }
@@ -364,5 +374,18 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
                 return type == Type.INT ? IDIV : FDIV;
         }
         throw new RuntimeException(oper + " is not supported for int");
+    }
+
+    private static Integer getStoreOperationInstruction(Type type) {
+        switch (type) {
+            case STRING:
+                return ASTORE;
+            case FLOAT:
+                return ISTORE;
+            case INT:
+                return ISTORE;
+            default:
+                throw new RuntimeException(type.toString() + " is not supported");
+        }
     }
 }

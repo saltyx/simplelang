@@ -35,4 +35,12 @@ public class VarItemFactory {
         item.scope = VarItem.Scope.GLOBAL;
         return item;
     }
+
+    public static VarItem createVarVarItem(String var,Type type, MethodInfo belongedMethod) {
+        VarItem item = new VarItem();
+        item.var = var;
+        item.type = type;
+        item.belongedMethod = belongedMethod;
+        return item;
+    }
 }
