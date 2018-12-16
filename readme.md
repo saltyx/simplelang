@@ -6,4 +6,5 @@
 
 - [x] 生成class文件
     
-- [ ] 测试
+- [ ] 测试 
+    - `TestVarTypeVisitor.java`
