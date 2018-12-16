@@ -26,7 +26,7 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
     private static final String CLASS_NAME = "Test";
     private static final String MAX_INT = "2147483648".intern();
 
-    private static ClassWriter classWriter ;
+    private static ClassWriter classWriter;
 
     private static MethodVisitor mainMethodVisitor;
     private static MethodVisitor currentMethodVisitor;
@@ -45,6 +45,8 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
 
     static {
         classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        Global.classWriter = classWriter;
+
         classWriter.visit(V1_8,
                 ACC_PUBLIC, CLASS_NAME, null, OBJECT_CLASS, new String[]{});
 
@@ -75,9 +77,15 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
                 null, null);
         super.visitSimpleLang(ctx);
 
+        clinitMethodVistor.visitInsn(RETURN);
+        clinitMethodVistor.visitMaxs(0, 0);
+        clinitMethodVistor.visitEnd();
+
         mainMethodVisitor.visitInsn(RETURN);
         mainMethodVisitor.visitMaxs(0 ,0);
         mainMethodVisitor.visitEnd();
+
+
         return null;
     }
 
@@ -100,7 +108,24 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
             }
         }
 
+        List<Type> argTypes = methodBodyVars.stream().filter(varItem -> varItem.scope == VarItem.Scope.METHOD_ARG)
+                .sorted(Comparator.comparing(varItem -> varItem.methodArgIndex))
+                .map(varItem -> varItem.type)
+                .collect(Collectors.toList());
+        argTypes.add(retType);
+
+        // TODO 生成currentMethodVisitor
+        currentMethodVisitor = classWriter.visitMethod(
+                ACC_PUBLIC + ACC_STATIC,
+                currentMethod.methodName,
+                CallMethodParamFactory.create(argTypes),
+                null, null
+        );
+
         visit(ctx.block());
+
+        currentMethod = null;
+        currentMethodVisitor = null;
         return retType;
     }
 
@@ -130,6 +155,8 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
         currentMethodVisitor.visitEnd();
 
         currentMethod = null;
+        currentMethodVisitor = null;
+
         localVarIndex.clear();
         return ret.type;
     }
@@ -142,9 +169,16 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
         List<VarItem> methodArgs = TypeUtil.findVarItem(param);
         methodArgs.sort(Comparator.comparing((VarItem item) -> item.methodArgIndex));
 
-        ctx.expr().forEach(this::visit);
+        param = VarItemFactory.createReturnVarItem(callMethod);
+        VarItem retItem = TypeUtil.findVarItem(param).get(0);
 
-        currentMethodVisitor.visitMethodInsn(INVOKESTATIC,
+        methodArgs.add(retItem);
+
+        log.debug("method args {}", methodArgs);
+
+        ctx.expr().forEach(this::visit);
+        log.debug("current : {}" , getMethodVisitor() == mainMethodVisitor);
+        getMethodVisitor().visitMethodInsn(INVOKESTATIC,
                 CLASS_NAME,
                 callMethod.methodName,
                 CallMethodParamFactory.create(methodArgs.stream()
@@ -180,8 +214,14 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
             getMethodVisitor().visitFieldInsn(PUTSTATIC, CLASS_NAME,
                     var, CallMethodParamFactory.getTypeString(varType));
         } else {
-            int index = localVarIndex.get(var);
-            getMethodVisitor().visitVarInsn(getStoreOperationInstruction(varType), index);
+            Integer index = localVarIndex.get(var);
+            if (index != null) {
+                getMethodVisitor().visitVarInsn(getStoreOperationInstruction(varType),
+                        index);
+            } else {
+                getMethodVisitor().visitFieldInsn(PUTSTATIC, CLASS_NAME,
+                        var, CallMethodParamFactory.getTypeString(varType));
+            }
         }
         return null;
     }
@@ -190,6 +230,7 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
     public Type visitAddOrSubCalExpr(SimpleLangParser.AddOrSubCalExprContext ctx) {
         Type type1 = visit(ctx.calExpr(0));
         Type type2 = visit(ctx.calExpr(1));
+//        log.info("$$$$$$$$ type1 {} type2 {}", type1, type2);
         processOperationNumber(ctx.opAddAndSub().getText(), type1, type2);
         return (type1 == Type.FLOAT || type2 == Type.FLOAT) ? Type.FLOAT : Type.INT ;
     }
@@ -214,6 +255,7 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
     public Type visitNumber(SimpleLangParser.NumberContext ctx) {
         if (ctx.INT() != null) {
             String intStr = ctx.INT().getText();
+            log.debug("intStr {}", intStr);
             if (intStr.length() >= MAX_INT.length() &&
                     (intStr.length() > MAX_INT.length() || // 长度超过int
                      intStr.compareTo(MAX_INT) > 0      || // 大于绝对值的最大值
@@ -281,8 +323,11 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
         String var = ctx.VAR().getText();
         if (currentMethod != null) {
             // 其他方法区域
-            VarItem param = VarItemFactory.createVarMethodVarItem(currentMethod, var);
-            VarItem varItem = TypeUtil.findVarItem(param).get(0);
+            List<VarItem> methodVars = TypeUtil.findVarItem(VarItemFactory
+                                          .createVarMethodVarItem(currentMethod, var));
+            VarItem varItem = methodVars.size() == 0 ?
+                              TypeUtil.findVarItem(VarItemFactory
+                                      .createGlobalVarItem(var)).get(0) : methodVars.get(0);
             switch (varItem.scope) {
                 case GLOBAL:
                     currentMethodVisitor.visitFieldInsn(GETSTATIC,
@@ -290,7 +335,8 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
                             var,
                             CallMethodParamFactory.getTypeString(varItem.type));
                     break;
-                case METHOD_ARG: case METHOD_TEMP_VAR:
+                case METHOD_ARG:
+                case METHOD_TEMP_VAR:
                     Integer argIndex = localVarIndex.get(var);
                     if (argIndex != null) {
                         currentMethodVisitor.visitVarInsn(getLoadInstruction(varItem.type),
@@ -300,7 +346,10 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
                         localVarIndex.put(var, localVarIndex.keySet().size());
                     }
                     break;
+
             }
+            log.debug("return type {}", varItem.type);
+            return varItem.type;
         } else {
             VarItem param = VarItemFactory.createGlobalVarItem(var);
             VarItem globalVar = TypeUtil.findVarItem(param).get(0);
@@ -313,8 +362,9 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
                 mainMethodVisitor.visitFieldInsn(GETSTATIC,
                         CLASS_NAME, var, CallMethodParamFactory.getTypeString(globalVar.type));
             }
+            log.debug("return type {}", globalVar.type);
+            return globalVar.type;
         }
-        return super.visitVar(ctx);
     }
 
     private static MethodVisitor getMethodVisitor() {
@@ -381,7 +431,7 @@ public class BytecodeVisitor extends SimpleLangBaseVisitor<Type> implements Opco
             case STRING:
                 return ASTORE;
             case FLOAT:
-                return ISTORE;
+                return FSTORE;
             case INT:
                 return ISTORE;
             default:

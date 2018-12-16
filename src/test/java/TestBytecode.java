@@ -1,7 +1,7 @@
 
 public class TestBytecode {
 
-//    static int aa = 128;
+    static int aa = 128;
 //    static float bb = f2(aa);
 //    static float cc = f2((float) 1.2);
 
@@ -20,10 +20,10 @@ public class TestBytecode {
 
     }
 
-//    public static float f2(float arg1) {
-//        arg1 = f1(aa, 10);
-//        return arg1;
-//    }
+    public static float f2(int arg1) {
+        arg1 = f(aa, 10);
+        return arg1;
+    }
 //
 //    public static float f1 (float a, float b) {
 //        a = (float) 1.2 + a;
@@ -33,5 +33,9 @@ public class TestBytecode {
 //        c = f2(c);
 //        return a + b;
 //    }
+
+    public static int f(int aa , int bb) {
+        return aa+bb;
+    }
 
 }

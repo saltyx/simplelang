@@ -16,6 +16,9 @@ public class TestASM extends ClassLoader implements Opcodes {
         cw1.visitField(ACC_PUBLIC+ACC_STATIC, "aaaaa",
                 "I", null,
                 null).visitEnd();
+        cw1.visitField(ACC_PUBLIC+ACC_STATIC, "aaaab",
+                "I", null,
+                null).visitEnd();
         MethodVisitor mw = cw1.visitMethod(ACC_PUBLIC+ACC_STATIC,
                 "<clinit>", "()V", null,
                 null);
@@ -24,11 +27,11 @@ public class TestASM extends ClassLoader implements Opcodes {
 //        mw.visitInsn(I2F);
 //        mw.visitInsn(ICONST_1);
         mw.visitInsn(INEG);
+        mw.visitInsn(ICONST_1);
+//        mw.visitLdcInsn(1F);
+        mw.visitInsn(IADD);
         mw.visitFieldInsn(PUTSTATIC, "TestASM",
                 "aaaaa", "I");
-//        mw.visitFieldInsn(GETSTATIC,
-//              "TestASM",
-//                "aaaaa", "I");
         mw.visitInsn(RETURN);
         mw.visitMaxs(0 ,0);
         mw.visitEnd();
@@ -68,6 +71,10 @@ public class TestASM extends ClassLoader implements Opcodes {
                 "java/io/PrintStream",
                 "println",
                 "(I)V", false);
+        mw1.visitFieldInsn(GETSTATIC,
+                "TestASM",
+                "aaaaa", "I");
+        mw1.visitVarInsn(ISTORE, 4);
         mw1.visitInsn(RETURN);
         mw1.visitMaxs(0, 0);
         mw1.visitEnd();
@@ -85,9 +92,18 @@ public class TestASM extends ClassLoader implements Opcodes {
         instanceMethod.visitLabel(label);
         instanceMethod.visitIincInsn(0, 1);    // ++a
         instanceMethod.visitVarInsn(ILOAD, 0);
+        instanceMethod.visitInsn(ICONST_3);
+        instanceMethod.visitInsn(IADD);
         instanceMethod.visitVarInsn(ILOAD, 1); // b
         instanceMethod.visitMethodInsn(INVOKESTATIC,
                 "TestASM", "test", "(II)I", false); // test(a, b)
+//        instanceMethod.visitVarInsn(ISTORE, 0);
+//        instanceMethod.visitInsn(ICONST_3);
+//        instanceMethod.visitVarInsn(ISTORE, 0);
+//        instanceMethod.visitVarInsn(ISTORE_1);
+//        instanceMethod.visitVarInsn(ILOAD, 0);
+        instanceMethod.visitVarInsn(ISTORE, 2);
+        instanceMethod.visitInsn(ICONST_1);
         instanceMethod.visitInsn(IRETURN); // return
         instanceMethod.visitMaxs(0, 0);
         instanceMethod.visitEnd();
